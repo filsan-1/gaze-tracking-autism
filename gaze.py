@@ -1,99 +1,92 @@
 import cv2
 import numpy as np
+import time
 from helpers import relative, relativeT
+from logger import log_fixation_data
 
+# Facial regions we care about for ASD behavior (simplified)
+ROIS = {
+    'eyes_left': [33, 133],
+    'eyes_right': [362, 263],
+    'mouth': [78, 308],
+    'nose': [1]
+}
 
-def gaze(frame, points):
-    """
-    The gaze function gets an image and face landmarks from mediapipe framework.
-    The function draws the gaze direction into the frame.
-    """
+def mid(p1, p2):
+    return ((p1[0] + p2[0]) // 2, (p1[1] + p2[1]) // 2)
 
-    '''
-    2D image points.
-    relative takes mediapipe points that is normalized to [-1, 1] and returns image points
-    at (x,y) format
-    '''
-    image_points = np.array([
-        relative(points.landmark[4], frame.shape),  # Nose tip
-        relative(points.landmark[152], frame.shape),  # Chin
-        relative(points.landmark[263], frame.shape),  # Left eye left corner
-        relative(points.landmark[33], frame.shape),  # Right eye right corner
-        relative(points.landmark[287], frame.shape),  # Left Mouth corner
-        relative(points.landmark[57], frame.shape)  # Right mouth corner
+def within(p, center, r=30):
+    return np.linalg.norm(np.array(p) - np.array(center)) <= r
+
+def gaze(frame, landmarks):
+    img_pts = np.array([
+        relative(landmarks.landmark[4], frame.shape),     # Nose
+        relative(landmarks.landmark[152], frame.shape),   # Chin
+        relative(landmarks.landmark[263], frame.shape),   # Eye corners
+        relative(landmarks.landmark[33], frame.shape),
+        relative(landmarks.landmark[287], frame.shape),
+        relative(landmarks.landmark[57], frame.shape)
     ], dtype="double")
 
-    '''
-    2D image points.
-    relativeT takes mediapipe points that is normalized to [-1, 1] and returns image points
-    at (x,y,0) format
-    '''
-    image_points1 = np.array([
-        relativeT(points.landmark[4], frame.shape),  # Nose tip
-        relativeT(points.landmark[152], frame.shape),  # Chin
-        relativeT(points.landmark[263], frame.shape),  # Left eye, left corner
-        relativeT(points.landmark[33], frame.shape),  # Right eye, right corner
-        relativeT(points.landmark[287], frame.shape),  # Left Mouth corner
-        relativeT(points.landmark[57], frame.shape)  # Right mouth corner
+    img_pts3d = np.array([
+        relativeT(landmarks.landmark[4], frame.shape),
+        relativeT(landmarks.landmark[152], frame.shape),
+        relativeT(landmarks.landmark[263], frame.shape),
+        relativeT(landmarks.landmark[33], frame.shape),
+        relativeT(landmarks.landmark[287], frame.shape),
+        relativeT(landmarks.landmark[57], frame.shape)
     ], dtype="double")
 
-    # 3D model points.
-    model_points = np.array([
-        (0.0, 0.0, 0.0),  # Nose tip
-        (0, -63.6, -12.5),  # Chin
-        (-43.3, 32.7, -26),  # Left eye, left corner
-        (43.3, 32.7, -26),  # Right eye, right corner
-        (-28.9, -28.9, -24.1),  # Left Mouth corner
-        (28.9, -28.9, -24.1)  # Right mouth corner
+    model_pts = np.array([
+        (0, 0, 0), 
+        (0, -63, -12),
+        (-43, 32, -26),
+        (43, 32, -26),
+        (-29, -28, -24),
+        (29, -28, -24)
     ])
 
-    '''
-    3D model eye points
-    The center of the eye ball
-    '''
-    Eye_ball_center_right = np.array([[-29.05], [32.7], [-39.5]])
-    Eye_ball_center_left = np.array([[29.05], [32.7], [-39.5]])  # the center of the left eyeball as a vector.
+    eye_center = np.array([[29.05], [32.7], [-39.5]])
 
-    '''
-    camera matrix estimation
-    '''
-    focal_length = frame.shape[1]
-    center = (frame.shape[1] / 2, frame.shape[0] / 2)
-    camera_matrix = np.array(
-        [[focal_length, 0, center[0]],
-         [0, focal_length, center[1]],
-         [0, 0, 1]], dtype="double"
-    )
+    h, w = frame.shape[:2]
+    f_len = w
+    cam_mtx = np.array([
+        [f_len, 0, w / 2],
+        [0, f_len, h / 2],
+        [0, 0, 1]
+    ], dtype="double")
 
-    dist_coeffs = np.zeros((4, 1))  # Assuming no lens distortion
-    (success, rotation_vector, translation_vector) = cv2.solvePnP(model_points, image_points, camera_matrix,
-                                                                  dist_coeffs, flags=cv2.cv2.SOLVEPNP_ITERATIVE)
+    dist = np.zeros((4, 1))
+    success, rvec, tvec = cv2.solvePnP(model_pts, img_pts, cam_mtx, dist)
 
-    # 2d pupil location
-    left_pupil = relative(points.landmark[468], frame.shape)
-    right_pupil = relative(points.landmark[473], frame.shape)
+    left_pupil = relative(landmarks.landmark[468], frame.shape)
 
-    # Transformation between image point to world point
-    _, transformation, _ = cv2.estimateAffine3D(image_points1, model_points)  # image to world transformation
+    _, trans, _ = cv2.estimateAffine3D(img_pts3d, model_pts)
 
-    if transformation is not None:  # if estimateAffine3D secsseded
-        # project pupil image point into 3d world point 
-        pupil_world_cord = transformation @ np.array([[left_pupil[0], left_pupil[1], 0, 1]]).T
+    if trans is not None:
+        pupil_3d = trans @ np.array([[left_pupil[0], left_pupil[1], 0, 1]]).T
+        gaze_vec = eye_center + (pupil_3d - eye_center) * 10
 
-        # 3D gaze point (10 is arbitrary value denoting gaze distance)
-        S = Eye_ball_center_left + (pupil_world_cord - Eye_ball_center_left) * 10
+        gaze_2d, _ = cv2.projectPoints(gaze_vec.T[0], rvec, tvec, cam_mtx, dist)
+        head_fix, _ = cv2.projectPoints((int(pupil_3d[0]), int(pupil_3d[1]), 40), rvec, tvec, cam_mtx, dist)
 
-        # Project a 3D gaze direction onto the image plane.
-        (eye_pupil2D, _) = cv2.projectPoints((int(S[0]), int(S[1]), int(S[2])), rotation_vector,
-                                             translation_vector, camera_matrix, dist_coeffs)
-        # project 3D head pose into the image plane
-        (head_pose, _) = cv2.projectPoints((int(pupil_world_cord[0]), int(pupil_world_cord[1]), int(40)),
-                                           rotation_vector,
-                                           translation_vector, camera_matrix, dist_coeffs)
-        # correct gaze for head rotation
-        gaze = left_pupil + (eye_pupil2D[0][0] - left_pupil) - (head_pose[0][0] - left_pupil)
+        final_gaze = left_pupil + (gaze_2d[0][0] - left_pupil) - (head_fix[0][0] - left_pupil)
 
-        # Draw gaze line into screen
-        p1 = (int(left_pupil[0]), int(left_pupil[1]))
-        p2 = (int(gaze[0]), int(gaze[1]))
-        cv2.line(frame, p1, p2, (0, 0, 255), 2)
+        cv2.line(frame, tuple(map(int, left_pupil)), tuple(map(int, final_gaze)), (0, 0, 255), 2)
+
+        # Gaze target tracking
+        target = "none"
+        for label, ids in ROIS.items():
+            pt1 = relative(landmarks.landmark[ids[0]], frame.shape)
+            pt2 = relative(landmarks.landmark[ids[1]], frame.shape) if len(ids) > 1 else pt1
+            center = mid(pt1, pt2)
+
+            inside = within(final_gaze, center)
+            color = (0, 255, 0) if inside else (180, 180, 180)
+            cv2.circle(frame, center, 5, color, -1)
+            if inside:
+                target = label
+
+        ts = time.time()
+        log_fixation_data(ts, target, final_gaze)
+
