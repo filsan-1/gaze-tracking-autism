@@ -1,6 +1,6 @@
 # ASD  child Gaze Tracker
 
-A lPython-based application for detecting gaze direction and visual fixation in real-time using a webcam. Built with OpenCV and MediaPipe, this tool helps analyze attention focus in individuals, especially useful in studying Autism Spectrum Disorder (ASD).
+A Python-based application for detecting gaze direction and visual fixation in real-time using a webcam. Built with OpenCV and MediaPipe, this tool helps analyze attention focus in individuals, especially useful in studying Autism Spectrum Disorder (ASD).
 
 ## 🔍 Overview
 
