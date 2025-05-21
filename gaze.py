@@ -1,10 +1,9 @@
 import cv2
 import numpy as np
 import time
-from helpers import relative, relativeT
-from logger import log_fixation_data
+from helpers import relative, relativeT, log_fixation_data
 
-# Facial regions we care about for ASD behavior (simplified)
+# Regions of interest (ROIs) on the face
 ROIS = {
     'eyes_left': [33, 133],
     'eyes_right': [362, 263],
@@ -13,19 +12,24 @@ ROIS = {
 }
 
 def mid(p1, p2):
+    """Return midpoint between two points."""
     return ((p1[0] + p2[0]) // 2, (p1[1] + p2[1]) // 2)
 
 def within(p, center, r=30):
+    """Check if point `p` is within radius `r` of `center`."""
     return np.linalg.norm(np.array(p) - np.array(center)) <= r
 
 def gaze(frame, landmarks):
+    """Compute gaze direction and draw red line to indicate it."""
+    
+    # Convert facial landmarks to image coordinates
     img_pts = np.array([
         relative(landmarks.landmark[4], frame.shape),     # Nose
         relative(landmarks.landmark[152], frame.shape),   # Chin
-        relative(landmarks.landmark[263], frame.shape),   # Eye corners
-        relative(landmarks.landmark[33], frame.shape),
-        relative(landmarks.landmark[287], frame.shape),
-        relative(landmarks.landmark[57], frame.shape)
+        relative(landmarks.landmark[263], frame.shape),   # Right eye corner
+        relative(landmarks.landmark[33], frame.shape),    # Left eye corner
+        relative(landmarks.landmark[287], frame.shape),   # Right cheek
+        relative(landmarks.landmark[57], frame.shape)     # Left cheek
     ], dtype="double")
 
     img_pts3d = np.array([
@@ -72,9 +76,10 @@ def gaze(frame, landmarks):
 
         final_gaze = left_pupil + (gaze_2d[0][0] - left_pupil) - (head_fix[0][0] - left_pupil)
 
+        # 🔴 Draw red line from pupil to gaze direction
         cv2.line(frame, tuple(map(int, left_pupil)), tuple(map(int, final_gaze)), (0, 0, 255), 2)
 
-        # Gaze target tracking
+        # Determine which facial region the child is gazing at
         target = "none"
         for label, ids in ROIS.items():
             pt1 = relative(landmarks.landmark[ids[0]], frame.shape)
@@ -84,9 +89,15 @@ def gaze(frame, landmarks):
             inside = within(final_gaze, center)
             color = (0, 255, 0) if inside else (180, 180, 180)
             cv2.circle(frame, center, 5, color, -1)
+
             if inside:
                 target = label
 
+        # Log data
         ts = time.time()
         log_fixation_data(ts, target, final_gaze)
+
+        return target
+
+    return "none"
 
