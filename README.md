@@ -8,10 +8,11 @@ The tool estimates a user’s gaze vector using facial landmarks and maps it to 
 
 ---
 ## What was achieved
--Accurate real-time gaze tracking using only a webcam.
--Idenification of key behavioral risk flags:excessive eye fixation,low attentionto the mouth(speech area),high unfocused gaze,very few gaze transitions.
--Custom ML-based risk clarification integrated.
--Fully offline,low cost,privacy-preserving deployment.
+- Accurate real-time gaze tracking using only a webcam.  
+- Identification of key behavioral risk flags: excessive eye fixation, low attention to the mouth (speech area), high unfocused gaze, very few gaze transitions.  
+- Custom ML-based risk classification integrated.  
+- Fully offline, low-cost, privacy-preserving deployment.
+
 
 ## 📦 Requirements
 
@@ -28,9 +29,10 @@ The tool estimates a user’s gaze vector using facial landmarks and maps it to 
 
 
 ## Use Case Applications
--Early screening in clinics,schoools and homes
--Supplement to clinicians assessments
--Scalable,low-cost solution for early intervention
+- Early screening in clinics, schools, and homes  
+- Supplement to clinicians’ assessments  
+- Scalable, low-cost solution for early intervention
+
 
 
 
