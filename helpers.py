@@ -1,5 +1,4 @@
-
- import csv
+import csv
 import os
 from collections import Counter
 
