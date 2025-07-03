@@ -4,79 +4,131 @@ import os
 import pandas as pd
 import cv2
 
-# Page config
-st.set_page_config(page_title="ASD Gaze Tracker", layout="centered")
+# Configure the page
+st.set_page_config(
+    page_title="🧠 ASD Gaze Tracker",
+    layout="centered",
+    initial_sidebar_state="expanded",
+)
 
-# Title
+# --- Sidebar: About the App ---
+with st.sidebar:
+    st.header("About")
+    st.markdown(
+        """
+        Welcome to the **ASD Gaze Tracker**, a user-friendly tool designed to support early screening for Autism Spectrum Disorder by tracking gaze patterns through a simple webcam.
+
+        This tool helps schools, clinics, and families monitor attention and social engagement indicators in children, using real-time gaze tracking technology powered by OpenCV and MediaPipe.
+
+        > Fully offline • Privacy-focused • Easy to use
+        """
+    )
+    st.markdown("---")
+    st.caption("© 2025 ASD Research Initiative")
+
+# --- Main App Title ---
 st.title("🧠 ASD Gaze Tracker")
-st.subheader("For early screening in schools and clinics")
+st.write(
+    """
+    This application provides a **simple and effective** way to record and analyze gaze behavior.
+    Use it to support early identification of attention and social communication patterns in children with ASD.
+    """
+)
 
-st.markdown("""
-This application helps track gaze behavior using a webcam. It's designed to support early detection of attention and social communication patterns, especially for children with ASD.
-""")
-
-# -----------------------
-# 🧾 ID Input Section
-# -----------------------
+# --- Session Start Section ---
 st.markdown("---")
-st.header("📝 Start a New Session")
-user_id = st.text_input("Enter Student/Patient ID", placeholder="e.g. STU12345")
+st.header("Start a New Session")
 
-# -----------------------
-# 📷 Optional Webcam Preview
-# -----------------------
-st.markdown("### 🔍 Optional: Preview Webcam")
-if st.checkbox("Enable Webcam Preview"):
+user_id = st.text_input(
+    label="Student/Patient ID",
+    placeholder="Enter unique ID (e.g., STU12345)",
+)
+
+if not user_id:
+    st.info("Please enter a valid Student or Patient ID to begin.")
+else:
+    st.success(f"Ready to start session for **{user_id}**.")
+
+# --- Webcam Preview ---
+st.markdown("---")
+st.header("Preview Webcam (Optional)")
+
+if 'preview_active' not in st.session_state:
+    st.session_state.preview_active = False
+
+def start_preview():
+    st.session_state.preview_active = True
+
+def stop_preview():
+    st.session_state.preview_active = False
+
+if not st.session_state.preview_active:
+    if st.button("Start Webcam Preview"):
+        start_preview()
+else:
     cap = cv2.VideoCapture(0)
-    stframe = st.empty()
-    st.info("Live webcam preview. Close this checkbox or refresh to stop.")
-    while cap.isOpened():
-        ret, frame = cap.read()
-        if not ret:
-            st.warning("Webcam not detected.")
-            break
-        stframe.image(frame, channels="BGR")
-        if st.button("❌ Stop Preview"):
-            break
-    cap.release()
-    stframe.empty()
-
-# -----------------------
-# ▶️ Launch Tracking
-# -----------------------
-st.markdown("### ▶️ Run Gaze Tracking")
-if st.button("Start Session"):
-    if not user_id.strip():
-        st.error("⚠️ Please enter a valid ID before starting.")
+    stop = st.button("Stop Webcam Preview")
+    if stop:
+        stop_preview()
+        cap.release()
+        st.empty()
     else:
-        st.success(f"Starting gaze tracking session for: **{user_id}**")
+        if cap.isOpened():
+            ret, frame = cap.read()
+            if ret:
+                st.image(frame, channels="BGR", caption="📷 Live Webcam Feed")
+            else:
+                st.error("⚠️ Unable to read from webcam.")
+        else:
+            st.error("⚠️ Webcam not detected or unavailable.")
+
+# --- Start Gaze Tracking ---
+st.markdown("---")
+st.header("Run Gaze Tracking")
+
+if st.button("▶️ Start Session"):
+    if not user_id.strip():
+        st.error("⚠️ Student/Patient ID is required before starting.")
+    else:
+        st.info(f"Starting gaze tracking session for **{user_id}**. Please ensure your webcam is on.")
+        # Run your gaze tracking script here
+        # Optionally, pass the user_id as argument if main.py supports it
         subprocess.run(["python", "main.py"])
+        st.success("Session complete! Check results below.")
 
-# -----------------------
-# 📁 View Results
-# -----------------------
+# --- Display Session Results ---
 st.markdown("---")
-st.header("📊 Session Results")
+st.header("Session Results")
 
-csv_file = "gaze_fixations.csv"
-pdf_file = "gaze_report.pdf"
+csv_path = "gaze_fixations.csv"
+pdf_path = "gaze_report.pdf"
 
-# Gaze Data Table
-if os.path.exists(csv_file):
-    st.subheader("📋 Gaze Fixation Data")
-    df = pd.read_csv(csv_file)
-    st.dataframe(df)
-else:
-    st.info("No gaze data available yet. Run a session first.")
+col_left, col_right = st.columns(2)
 
-# PDF Report
-if os.path.exists(pdf_file):
-    st.subheader("📄 Gaze Report")
-    with open(pdf_file, "rb") as f:
-        st.download_button("📥 Download PDF Report", f, file_name="gaze_report.pdf")
-else:
-    st.info("No PDF report found yet.")
+with col_left:
+    if os.path.exists(csv_path):
+        st.subheader("Gaze Fixation Data")
+        df = pd.read_csv(csv_path)
+        st.dataframe(df, height=300)
+    else:
+        st.info("No gaze fixation data available yet. Run a session to generate results.")
 
-# Footer
+with col_right:
+    if os.path.exists(pdf_path):
+        st.subheader("Download Gaze Report")
+        with open(pdf_path, "rb") as pdf_file:
+            st.download_button(
+                label="📥 Download PDF Report",
+                data=pdf_file,
+                file_name=f"gaze_report_{user_id or 'latest'}.pdf",
+                mime="application/pdf",
+            )
+    else:
+        st.info("No PDF report found yet. It will be generated after running a session.")
+
+# --- Footer ---
 st.markdown("---")
-st.caption("⚙️ This app runs fully offline. Your data stays private and secure.")
+st.write(
+    "⚙️ This app is designed to run fully offline. Your data remains private and secure on your device.\n\n"
+    "Made with ❤️ by the ASD Research Initiative."
+)
