@@ -4,6 +4,61 @@ import os
 import pandas as pd
 import cv2
 
+# Custom CSS for styling
+st.markdown(
+    """
+    <style>
+    .stApp {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: #f9fafb;
+        color: #333;
+    }
+    .sidebar .sidebar-content {
+        background: #002244;
+        color: white;
+    }
+    .sidebar .sidebar-content h2 {
+        color: #f7c948;
+    }
+    .sidebar .sidebar-content p, .sidebar .sidebar-content div {
+        color: #ccc;
+    }
+    .stButton>button {
+        background-color: #0072B5;
+        color: white;
+        font-weight: bold;
+        border-radius: 8px;
+        padding: 8px 18px;
+        transition: background-color 0.3s ease;
+    }
+    .stButton>button:hover {
+        background-color: #005f86;
+        cursor: pointer;
+    }
+    .stDownloadButton>button {
+        background-color: #28a745;
+        color: white;
+        font-weight: bold;
+        border-radius: 8px;
+        padding: 8px 18px;
+        transition: background-color 0.3s ease;
+    }
+    .stDownloadButton>button:hover {
+        background-color: #1e7e34;
+        cursor: pointer;
+    }
+    .webcam-frame {
+        border: 4px solid #0072B5;
+        border-radius: 10px;
+        max-width: 640px;
+        margin: 0 auto 20px auto;
+        box-shadow: 0 0 10px rgba(0,114,181,0.5);
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
 # Configure the page
 st.set_page_config(
     page_title="🧠 ASD Gaze Tracker",
@@ -11,9 +66,9 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# --- Sidebar: About the App ---
+# Sidebar content
 with st.sidebar:
-    st.header("About")
+    st.header("🧠 About")
     st.markdown(
         """
         Welcome to the **ASD Gaze Tracker**, a user-friendly tool designed to support early screening for Autism Spectrum Disorder by tracking gaze patterns through a simple webcam.
@@ -26,7 +81,7 @@ with st.sidebar:
     st.markdown("---")
     st.caption("© 2025 ASD Research Initiative")
 
-# --- Main App Title ---
+# Main title and intro
 st.title("🧠 ASD Gaze Tracker")
 st.write(
     """
@@ -35,12 +90,12 @@ st.write(
     """
 )
 
-# --- Session Start Section ---
+# Start session input
 st.markdown("---")
 st.header("Start a New Session")
 
 user_id = st.text_input(
-    label="Student/Patient ID",
+    label="🆔 Student/Patient ID",
     placeholder="Enter unique ID (e.g., STU12345)",
 )
 
@@ -49,9 +104,9 @@ if not user_id:
 else:
     st.success(f"Ready to start session for **{user_id}**.")
 
-# --- Webcam Preview ---
+# Webcam preview section
 st.markdown("---")
-st.header("Preview Webcam (Optional)")
+st.header("📷 Preview Webcam (Optional)")
 
 if 'preview_active' not in st.session_state:
     st.session_state.preview_active = False
@@ -62,61 +117,64 @@ def start_preview():
 def stop_preview():
     st.session_state.preview_active = False
 
-if not st.session_state.preview_active:
-    if st.button("Start Webcam Preview"):
-        start_preview()
-else:
-    cap = cv2.VideoCapture(0)
-    stop = st.button("Stop Webcam Preview")
-    if stop:
-        stop_preview()
-        cap.release()
-        st.empty()
+preview_col1, preview_col2 = st.columns([1, 3])
+
+with preview_col1:
+    if not st.session_state.preview_active:
+        if st.button("▶️ Start Webcam Preview"):
+            start_preview()
     else:
+        if st.button("⏹️ Stop Webcam Preview"):
+            stop_preview()
+
+with preview_col2:
+    if st.session_state.preview_active:
+        cap = cv2.VideoCapture(0)
         if cap.isOpened():
             ret, frame = cap.read()
             if ret:
-                st.image(frame, channels="BGR", caption="📷 Live Webcam Feed")
+                st.image(frame, channels="BGR", caption="Live Webcam Feed", output_format="JPEG", clamp=True, use_column_width=True, caption_visibility="visible")
             else:
                 st.error("⚠️ Unable to read from webcam.")
+            cap.release()
         else:
             st.error("⚠️ Webcam not detected or unavailable.")
 
-# --- Start Gaze Tracking ---
+# Gaze Tracking button
 st.markdown("---")
-st.header("Run Gaze Tracking")
+st.header("▶️ Run Gaze Tracking")
 
-if st.button("▶️ Start Session"):
+if st.button("Start Session"):
     if not user_id.strip():
         st.error("⚠️ Student/Patient ID is required before starting.")
     else:
-        st.info(f"Starting gaze tracking session for **{user_id}**. Please ensure your webcam is on.")
-        # Run your gaze tracking script here
-        # Optionally, pass the user_id as argument if main.py supports it
-        subprocess.run(["python", "main.py"])
+        with st.spinner(f"Starting gaze tracking session for **{user_id}**... Please ensure your webcam is on."):
+            # Run gaze tracking script here with user_id argument
+            # Example: subprocess.run(["python", "main.py", user_id])
+            subprocess.run(["python", "main.py"])
         st.success("Session complete! Check results below.")
 
-# --- Display Session Results ---
+# Session results in tabs
 st.markdown("---")
 st.header("Session Results")
 
 csv_path = "gaze_fixations.csv"
 pdf_path = "gaze_report.pdf"
 
-col_left, col_right = st.columns(2)
+tabs = st.tabs(["📊 Data", "📄 Report"])
 
-with col_left:
+with tabs[0]:
     if os.path.exists(csv_path):
-        st.subheader("Gaze Fixation Data")
         df = pd.read_csv(csv_path)
-        st.dataframe(df, height=300)
+        st.subheader("Gaze Fixation Data")
+        st.dataframe(df, height=350)
     else:
         st.info("No gaze fixation data available yet. Run a session to generate results.")
 
-with col_right:
+with tabs[1]:
     if os.path.exists(pdf_path):
-        st.subheader("Download Gaze Report")
         with open(pdf_path, "rb") as pdf_file:
+            st.subheader("Download Gaze Report")
             st.download_button(
                 label="📥 Download PDF Report",
                 data=pdf_file,
@@ -126,7 +184,7 @@ with col_right:
     else:
         st.info("No PDF report found yet. It will be generated after running a session.")
 
-# --- Footer ---
+# Footer
 st.markdown("---")
 st.write(
     "⚙️ This app is designed to run fully offline. Your data remains private and secure on your device.\n\n"
