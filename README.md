@@ -135,12 +135,8 @@ Playsound
 risk_flags.py (custom behavior analysis module)
 
 🔧 Setup
-bash
-Copy code
-git clone https://github.com/your-username/child-gaze-tracker.git
-cd child-gaze-tracker
-pip install -r requirements.txt
-python gaze_main.py
+
+
 🏥 Use Cases
 🧑‍⚕️ Pediatricians and developmental specialists for early screening
 
