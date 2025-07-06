@@ -1,4 +1,6 @@
 👀 Child Gaze Tracker – Real-Time Autism Risk Screening (6 Months – 4 Years)
+
+
 A privacy-preserving, webcam-based tool that analyzes gaze behavior in infants and young children (ages 6 months to 4 years) to identify early signs of Autism Spectrum Disorder (ASD).
 
 Using MediaPipe and OpenCV, this Python app provides non-invasive, real-time tracking of visual attention toward key social cues like the eyes, mouth, and nose, and flags behavioral patterns backed by clinical research.
