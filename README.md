@@ -21,6 +21,7 @@ Using MediaPipe and OpenCV, this Python app provides non-invasive, real-time tra
 ✅ Designed for children as young as 6 months
 
 👶 Intended Age Range
+
 6 Months to 4 Years
 
 The tool is optimized for early developmental stages when social attention and gaze behaviors begin to emerge. It’s ideal for:
@@ -32,6 +33,7 @@ Toddlers (1.5–4 years) during routine developmental screening
 Low-resource settings where full clinical assessments aren't always accessible
 
 👶 How Infants (6 Months+) Can Use It
+
 This tool is uniquely designed to work even with preverbal infants:
 
 👩‍🍼 The baby can sit on a caregiver’s lap or in a baby seat, 30–50 cm from the laptop.
@@ -45,6 +47,7 @@ This tool is uniquely designed to work even with preverbal infants:
 Unlike other systems, there’s no headset, no calibration, and no interaction required.
 
 🧠 What It Detects
+
 The tool focuses on identifying key early behavioral markers of ASD:
 
 🔴 Excessive fixation on eyes without switching
@@ -64,6 +67,8 @@ A risk level (Low, Moderate, or High)
 Specific behavioral flags with explanations
 
 💡 How It Works
+
+
 1. Face and Eye Tracking
 Uses MediaPipe Face Mesh (478 facial landmarks) for facial and eye region tracking
 
@@ -85,11 +90,13 @@ Logs fixation percentages and transition frequency
 Flags patterns associated with ASD risk
 
 Classifies session into:
+
 🟢 Low Risk
 🟡 Moderate Risk
 🔴 High Risk
 
 5. Reporting
+6. 
 Saves:
 
 gaze_report_[timestamp].pdf – Full session summary
