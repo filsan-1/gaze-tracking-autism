@@ -1,4 +1,6 @@
 👀 Child Gaze Tracker — Real-Time Autism Screening Tool
+
+
 This is a webcam-based tool that tracks where a child looks during a short video session. It uses real-time gaze detectionto identify patterns that could be early signs of Autism Spectrum Disorder (ASD)—specifically how much attention a child gives to eyes, mouth, and nose.
 
 It’s built entirely with Python, OpenCV, and MediaPipe, designed to be affordable, private, and easy to use in real-life situations—whether you're a parent, clinician, or researcher.
