@@ -6,6 +6,8 @@ A privacy-preserving, webcam-based tool that analyzes gaze behavior in infants a
 Using MediaPipe and OpenCV, this Python app provides non-invasive, real-time tracking of visual attention toward key social cues like the eyes, mouth, and nose, and flags behavioral patterns backed by clinical research.
 
 🎯 Key Features
+
+
 ✅ Webcam-based gaze tracking (no special equipment needed)
 
 ✅ Real-time visual feedback (live gaze vector overlay)
