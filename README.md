@@ -1,104 +1,130 @@
-👀 Child Gaze Tracker — Real-Time Autism Screening Tool
+👀 Child Gaze Tracker – Real-Time Autism Risk Screening (6 Months – 4 Years)
+A privacy-preserving, webcam-based tool that analyzes gaze behavior in infants and young children (ages 6 months to 4 years) to identify early signs of Autism Spectrum Disorder (ASD).
 
+Using MediaPipe and OpenCV, this Python app provides non-invasive, real-time tracking of visual attention toward key social cues like the eyes, mouth, and nose, and flags behavioral patterns backed by clinical research.
 
-This is a webcam-based tool that tracks where a child looks during a short video session. It uses real-time gaze detectionto identify patterns that could be early signs of Autism Spectrum Disorder (ASD)—specifically how much attention a child gives to eyes, mouth, and nose.
+🎯 Key Features
+✅ Webcam-based gaze tracking (no special equipment needed)
 
-It’s built entirely with Python, OpenCV, and MediaPipe, designed to be affordable, private, and easy to use in real-life situations—whether you're a parent, clinician, or researcher.
+✅ Real-time visual feedback (live gaze vector overlay)
 
-💡 What This App Does
-Tracks eye movement in real-time using your webcam
+✅ Detects behavioral markers related to ASD
 
-Detects which facial region the child is focusing on (eyes, mouth, nose)
+✅ Fully offline, low-cost, and private
 
-Flags early behavioral signs often seen in ASD (e.g., not switching gaze, not looking at the mouth)
+✅ Generates PDF + PNG reports
 
-Calculates a risk score (0–10) and categorizes it as Low, Moderate, or High Risk
+✅ Designed for children as young as 6 months
 
-Saves a detailed PDF + PNG report for offline review
+👶 Intended Age Range
+6 Months to 4 Years
 
-✅ Is It Running As Written?
-Yes, based on your screenshot, it’s running successfully and producing accurate results.
-From the PowerShell output:
+The tool is optimized for early developmental stages when social attention and gaze behaviors begin to emerge. It’s ideal for:
 
-Real-time gaze was captured
+Infants (6–18 months) showing early signs of gaze avoidance or delayed responsiveness
 
-Fixation analysis was performed
+Toddlers (1.5–4 years) during routine developmental screening
 
-Autism risk score was calculated (Score: 2/10, Low Risk)
+Low-resource settings where full clinical assessments aren't always accessible
 
-Behavioral flags were triggered correctly (e.g., “very few gaze switches”)
+👶 How Infants (6 Months+) Can Use It
+This tool is uniquely designed to work even with preverbal infants:
 
-PDF and PNG reports were generated and saved
+👩‍🍼 The baby can sit on a caregiver’s lap or in a baby seat, 30–50 cm from the laptop.
 
-This means the full pipeline—from live tracking to report generation—is working as intended. ✅
+👁️ The system automatically detects gaze direction as soon as the child looks at the screen.
 
-🎯 Is It Applicable in Real Life?
-Yes — with important context:
+🧠 It tracks which part of the face the baby focuses on (eyes, mouth, nose), or whether they look away.
 
-✅ What it’s good for:
-Early screening: Especially helpful at home, kindergartens, or community centers
+⏱️ Sessions are short (~1 minute), making them suitable even for babies with limited attention spans.
 
-Behavioral observation: Gives parents and educators objective insight into gaze behavior
+Unlike other systems, there’s no headset, no calibration, and no interaction required.
 
-Supporting data: Adds value to a clinician’s broader evaluation
+🧠 What It Detects
+The tool focuses on identifying key early behavioral markers of ASD:
 
-⚠️ What it’s not:
-A replacement for a medical diagnosis
+🔴 Excessive fixation on eyes without switching
 
-A definitive autism detection tool — it only highlights possible risk patterns
+🔵 Low attention to the mouth (linked to speech/social engagement)
 
-But as a low-cost, non-invasive, and fully offline tool, it's very promising and highly applicable, especially in low-resource settings or as a supplement in early childhood screening.
+🟠 Very few gaze transitions
 
-📋 Real-Life Use Case Example
-A parent wants to understand if their 2-year-old makes typical eye contact. They sit the child in front of a laptop, run this app for 1 minute, and get a report saying:
+🟡 Unfocused or scattered gaze
 
-“100% eye fixation, <5% mouth fixation, very few gaze switches — Low Risk (2/10).”
+These behaviors are logged in real-time and summarized into:
 
-While this alone doesn’t mean much, it gives them objective info to discuss with a pediatrician or therapist.
+An Autism Risk Score (0–10)
 
-🧠 What’s Behind the Scenes
-1. Face & Eye Tracking
-Uses MediaPipe Face Mesh to track 478 facial points
+A risk level (Low, Moderate, or High)
 
-Tracks iris and gaze direction frame-by-frame
+Specific behavioral flags with explanations
 
-2. Gaze Vector Calculation
-Uses OpenCV’s solvePnP() to account for head movement and estimate 3D gaze direction
+💡 How It Works
+1. Face and Eye Tracking
+Uses MediaPipe Face Mesh (478 facial landmarks) for facial and eye region tracking
 
-3. Behavior Flag Detection
-Tracks how long the child looks at eyes, mouth, nose
+Tracks iris movement with high precision
 
-Flags behaviors like:
+2. Gaze Vector Estimation
+Uses OpenCV’s solvePnP() to estimate head position and adjust the 3D gaze vector accordingly
 
-Excessive eye fixation
+Gaze is mapped to facial ROIs: eyes, mouth, nose, or off-face/unfocused
 
-Little or no mouth attention
+3. Real-Time Feedback
+Overlays a red gaze vector line on the live webcam feed
 
-Not switching gaze often
+Shows real-time direction of gaze on screen
 
-4. Report Generation
-Outputs session data into:
+4. Risk Detection Engine
+Logs fixation percentages and transition frequency
 
-.csv for raw fixation data
+Flags patterns associated with ASD risk
 
-.pdf for human-readable summary
+Classifies session into:
+🟢 Low Risk
+🟡 Moderate Risk
+🔴 High Risk
 
-.png chart of the results
+5. Reporting
+Saves:
 
-📦 Requirements
-You'll need:
+gaze_report_[timestamp].pdf – Full session summary
 
+gaze_report_bar_[timestamp].png – Bar chart of attention distribution
+
+gaze_fixations.csv – Raw data for researchers
+
+📋 Example Output (from a session)
+yaml
+Copy code
+Autism Risk Score: 2/10
+Risk Level: Low Risk
+
+Fixation Summary:
+- Eyes: 100%
+- Mouth: 0%
+- Nose: 0%
+- Unfocused: 0%
+
+Risk Flags:
+- [!] Excessive eye fixation (>98%)
+- [!] Very little attention to mouth (<5%)
+- [!] Very few gaze switches (<3 transitions)
+
+PDF + PNG reports saved in session directory.
+📦 Installation
+✅ Requirements
 Python 3.10+
 
 OpenCV (opencv-python)
 
 MediaPipe
 
+NumPy
+
 Pandas
 
 Matplotlib
-
-Numpy
 
 Scikit-learn
 
@@ -106,22 +132,42 @@ FPDF
 
 Playsound
 
-Custom module: risk_flags.py (included)
+risk_flags.py (custom behavior analysis module)
 
-Installation
+🔧 Setup
 bash
 Copy code
+git clone https://github.com/your-username/child-gaze-tracker.git
+cd child-gaze-tracker
 pip install -r requirements.txt
 python gaze_main.py
-Make sure your webcam is plugged in and you’re in a well-lit room.
+🏥 Use Cases
+🧑‍⚕️ Pediatricians and developmental specialists for early screening
 
-🚀 What’s Next
-To make this even more helpful, future versions might include:
+👩‍👧 Parents and caregivers monitoring at-home behavior
 
-Emotional response detection via pupil size
+🧑‍🏫 Preschool educators or early intervention programs
 
-Multi-child tracking (e.g., classroom analysis)
+🌍 Low-resource clinics or global health organizations
 
-Full-screen video stimuli for more natural gaze engagement
+🚀 Future Improvements
+Video-based stimuli to better engage infants
 
-GUI interface for non-tech user
+Emotion/pupil response tracking
+
+GUI for non-technical users
+
+Expanded risk scoring model with deep learning
+
+Integration with EHR systems for clinics
+
+🛑 Disclaimer
+This tool is not a diagnostic system. It is a supportive screening aid meant to assist caregivers and professionals in identifying early behavioral patterns that may be associated with ASD.
+Only a qualified clinician can make a formal diagnosis.
+
+🧡 Built With Care
+This project is inspired by the belief that early detection = early support. By making gaze analysis affordable and accessible, we aim to help families and clinicians catch early warning signs while it’s still early enough to make a difference.
+
+
+
+
