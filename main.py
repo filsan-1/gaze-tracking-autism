@@ -1,4 +1,4 @@
-import cv2
+mport cv2
 import mediapipe as mp
 from gaze_simple import gaze
 import time
@@ -212,4 +212,4 @@ pdf.image(pie_file, x=10, y=80, w=90)
 pdf.image(bar_file, x=110, y=80, w=90)
 pdf.output(pdf_file)
 
-print(f"PNG and PDF reports saved as: {pie_file}, {bar_file}, {pdf_file}")
+print(f"PNG and PDF reports saved as: 
